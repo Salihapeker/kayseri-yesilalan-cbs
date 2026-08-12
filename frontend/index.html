@@ -1,0 +1,456 @@
+<!doctype html>
+<html lang="tr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Kayseri Yeşil Alan ve Tesis Haritası</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/MarkerCluster.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/MarkerCluster.Default.css"
+    />
+    <style>
+      html,
+      body {
+        margin: 0;
+        height: 100%;
+        font-family: system-ui, sans-serif;
+      }
+      #app {
+        display: flex;
+        height: 100%;
+      }
+      #sidebar {
+        width: 260px;
+        padding: 16px;
+        box-sizing: border-box;
+        background: #fafaf8;
+        border-right: 1px solid #ddd;
+        overflow-y: auto;
+      }
+      #map {
+        flex: 1;
+      }
+      h1 {
+        font-size: 16px;
+        margin: 0 0 16px;
+      }
+      label {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 14px;
+        margin: 10px 0;
+        cursor: pointer;
+      }
+      .dot {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        display: inline-block;
+        flex-shrink: 0;
+      }
+      button {
+        width: 100%;
+        padding: 8px;
+        margin-top: 12px;
+        cursor: pointer;
+        background: #2d6a4f;
+        color: white;
+        border: none;
+        border-radius: 4px;
+      }
+      input[type="text"] {
+        width: 100%;
+        padding: 8px;
+        box-sizing: border-box;
+        font-size: 14px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+      }
+      #arama-sonuc {
+        margin-top: 6px;
+        max-height: 180px;
+        overflow-y: auto;
+      }
+      #arama-sonuc div {
+        padding: 6px 8px;
+        font-size: 13px;
+        cursor: pointer;
+        border-radius: 4px;
+      }
+      #arama-sonuc div:hover {
+        background: #eee;
+      }
+      #sonuclar {
+        margin-top: 12px;
+        font-size: 12px;
+      }
+      #sonuclar div {
+        display: flex;
+        justify-content: space-between;
+        padding: 4px 0;
+        border-bottom: 1px solid #eee;
+      }
+      .park-kart b {
+        display: inline-block;
+        min-width: 110px;
+      }
+      hr {
+        border: none;
+        border-top: 1px solid #ddd;
+        margin: 16px 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app">
+      <div id="sidebar">
+        <h1>Kayseri yeşil alan &amp; tesis haritası</h1>
+
+        <input
+          type="text"
+          id="arama-kutu"
+          placeholder="Park veya mahalle ara..."
+        />
+        <div id="arama-sonuc"></div>
+
+        <hr />
+
+        <label
+          ><input type="checkbox" id="chk-park" checked /><span
+            class="dot"
+            style="background: #2d6a4f"
+          ></span>
+          Parklar</label
+        >
+        <label
+          ><input type="checkbox" id="chk-tuvalet" /><span
+            class="dot"
+            style="background: #1d4ed8"
+          ></span>
+          Tuvaletler</label
+        >
+        <label
+          ><input type="checkbox" id="chk-oyun" /><span
+            class="dot"
+            style="background: #f97316"
+          ></span>
+          Çocuk oyun alanları</label
+        >
+        <label
+          ><input type="checkbox" id="chk-spor" /><span
+            class="dot"
+            style="background: #9333ea"
+          ></span>
+          Spor sahaları</label
+        >
+        <label
+          ><input type="checkbox" id="chk-cesme" /><span
+            class="dot"
+            style="background: #06b6d4"
+          ></span>
+          Çeşmeler</label
+        >
+        <label
+          ><input type="checkbox" id="chk-otopark" /><span
+            class="dot"
+            style="background: #6b7280"
+          ></span>
+          Otoparklar</label
+        >
+        <label
+          ><input type="checkbox" id="chk-kafeterya" /><span
+            class="dot"
+            style="background: #a16207"
+          ></span>
+          Kafeteryalar</label
+        >
+        <label
+          ><input type="checkbox" id="chk-bank" /><span
+            class="dot"
+            style="background: #78716c"
+          ></span>
+          Banklar</label
+        >
+        <label
+          ><input type="checkbox" id="chk-piknik" /><span
+            class="dot"
+            style="background: #65a30d"
+          ></span>
+          Piknik alanları</label
+        >
+        <button id="en-yakin-btn">Bana en yakın tuvaleti bul</button>
+        <div id="sonuclar"></div>
+      </div>
+      <div id="map"></div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/leaflet.markercluster.js"></script>
+    <script>
+      const API = "http://localhost:3000/api";
+      const map = L.map("map").setView([38.7312, 35.4787], 12);
+
+      const kayseriSinirlari = L.latLngBounds([37.5, 34.5], [39.3, 36.8]);
+      map.setMaxBounds(kayseriSinirlari);
+      map.setMinZoom(9);
+
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        attribution: "&copy; OpenStreetMap katkıda bulunanlar",
+      }).addTo(map);
+
+      function kumeOlustur(renk) {
+        return L.markerClusterGroup({
+          iconCreateFunction: (cluster) =>
+            L.divIcon({
+              html: `<div style="background:${renk}; color:#fff; width:34px; height:34px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:600; border:2px solid #fff;">${cluster.getChildCount()}</div>`,
+              className: "",
+              iconSize: [34, 34],
+            }),
+        });
+      }
+
+      function noktaCiz(latlng, renk) {
+        return L.circleMarker(latlng, {
+          radius: 6,
+          fillColor: renk,
+          color: "#fff",
+          weight: 1,
+          fillOpacity: 0.9,
+        });
+      }
+
+      function varYok(n) {
+        return n > 0 ? `Var (${n})` : "Yok";
+      }
+
+      function alanYaz(m2) {
+        if (!m2) return "";
+        return m2 > 10000
+          ? `${(m2 / 10000).toFixed(1)} hektar`
+          : `${m2.toLocaleString("tr-TR")} m²`;
+      }
+
+      const renkler = {
+        park: "#2d6a4f",
+        tuvalet: "#1d4ed8",
+        cocuk_oyun_alani: "#f97316",
+        spor_sahasi: "#9333ea",
+        cesme: "#06b6d4",
+        otopark: "#6b7280",
+        kafeterya: "#a16207",
+        bank: "#78716c",
+        piknik_alani: "#65a30d",
+      };
+      const katmanlar = {
+        park: L.layerGroup().addTo(map),
+        tuvalet: kumeOlustur(renkler.tuvalet),
+        cocuk_oyun_alani: kumeOlustur(renkler.cocuk_oyun_alani),
+        spor_sahasi: kumeOlustur(renkler.spor_sahasi),
+        cesme: kumeOlustur(renkler.cesme),
+        otopark: kumeOlustur(renkler.otopark),
+        kafeterya: kumeOlustur(renkler.kafeterya),
+        bank: kumeOlustur(renkler.bank),
+        piknik_alani: kumeOlustur(renkler.piknik_alani),
+      };
+      // Arama için tüm parkları hafızada tutuyoruz (ad + koordinat + katman referansı)
+      const aramaIndeksi = [];
+
+      function parkPopupAc(layer, props) {
+        layer.bindPopup("Yükleniyor...");
+        layer.on("popupopen", async () => {
+          const detay = await fetch(`${API}/yesil-alanlar/${props.id}`).then(
+            (r) => r.json(),
+          );
+          const o = detay.tesis_ozeti;
+          const ek = detay.ek_ozellikler || {};
+          layer.setPopupContent(`
+      <div class="park-kart">
+        <b style="font-size:14px;">${detay.ad}</b><br>
+        ${detay.mahalle || ""} ${detay.alan_m2 ? "· " + alanYaz(detay.alan_m2) : ""}<br><br>
+        <b>Tuvalet:</b> ${varYok(o.tuvalet)}<br>
+        <b>Çocuk oyun alanı:</b> ${varYok(o.cocuk_oyun_alani)}<br>
+        <b>Spor sahası:</b> ${varYok(o.spor_sahasi)}<br>
+        <b>Çeşme:</b> ${varYok(o.cesme)}<br>
+        <b>Otopark:</b> ${varYok(o.otopark)}
+        <b>Otopark:</b> ${varYok(o.otopark)}<br>
+<b>Kafeterya:</b> ${varYok(o.kafeterya)}<br>
+<b>Bank:</b> ${varYok(o.bank)}<br>
+<b>Piknik alanı:</b> ${varYok(o.piknik_alani)}
+<b>Piknik alanı:</b> ${varYok(o.piknik_alani)}
+${ek.aydinlatma !== undefined ? `<br><b>Aydınlatma:</b> ${ek.aydinlatma ? "Var" : "Yok"}` : ""}
+${ek.engelli_erisimi !== undefined ? `<br><b>Engelli erişimi:</b> ${ek.engelli_erisimi ? "Var" : "Yok"}` : ""}
+${ek.acilis_saatleri ? `<br><b>Açılış saatleri:</b> ${ek.acilis_saatleri}` : ""}
+${ek.otopark_kapasitesi ? `<br><b>Otopark kapasitesi:</b> ${ek.otopark_kapasitesi} araç` : ""}
+      </div>
+    `);
+        });
+      }
+
+      fetch(`${API}/yesil-alanlar`)
+        .then((r) => r.json())
+        .then((data) => {
+          const parkLayer = L.geoJSON(data, {
+            style: {
+              color: "#1b4332",
+              weight: 1.5,
+              fillColor: "#2d6a4f",
+              fillOpacity: 0.45,
+            },
+            pointToLayer: (feature, latlng) => noktaCiz(latlng, renkler.park),
+          });
+
+          parkLayer.eachLayer((layer) => {
+            const props = layer.feature.properties;
+            parkPopupAc(layer, props);
+            katmanlar.park.addLayer(layer);
+
+            aramaIndeksi.push({
+              ad: props.ad,
+              mahalle: props.mahalle || "",
+              layer: layer,
+              merkez: layer.getBounds
+                ? layer.getBounds().getCenter()
+                : layer.getLatLng(),
+            });
+          });
+        });
+
+      fetch(`${API}/tesisler`)
+        .then((r) => r.json())
+        .then((data) => {
+          data.features.forEach((f) => {
+            const [lon, lat] = f.geometry.coordinates;
+            const tur = f.properties.tur;
+            const renk = renkler[tur];
+            if (!renk) return;
+            const marker = noktaCiz([lat, lon], renk).bindPopup(
+              `<b>${f.properties.ad || "İsimsiz"}</b><br>Park: ${f.properties.park_adi || "-"}`,
+            );
+            katmanlar[tur].addLayer(marker);
+          });
+        });
+
+      document
+        .getElementById("chk-park")
+        .addEventListener("change", (e) =>
+          toggleLayer("park", e.target.checked),
+        );
+      document
+        .getElementById("chk-tuvalet")
+        .addEventListener("change", (e) =>
+          toggleLayer("tuvalet", e.target.checked),
+        );
+      document
+        .getElementById("chk-oyun")
+        .addEventListener("change", (e) =>
+          toggleLayer("cocuk_oyun_alani", e.target.checked),
+        );
+      document
+        .getElementById("chk-spor")
+        .addEventListener("change", (e) =>
+          toggleLayer("spor_sahasi", e.target.checked),
+        );
+      document
+        .getElementById("chk-cesme")
+        .addEventListener("change", (e) =>
+          toggleLayer("cesme", e.target.checked),
+        );
+      document
+        .getElementById("chk-otopark")
+        .addEventListener("change", (e) =>
+          toggleLayer("otopark", e.target.checked),
+        );
+      document
+        .getElementById("chk-kafeterya")
+        .addEventListener("change", (e) =>
+          toggleLayer("kafeterya", e.target.checked),
+        );
+      document
+        .getElementById("chk-bank")
+        .addEventListener("change", (e) =>
+          toggleLayer("bank", e.target.checked),
+        );
+      document
+        .getElementById("chk-piknik")
+        .addEventListener("change", (e) =>
+          toggleLayer("piknik_alani", e.target.checked),
+        );
+      function toggleLayer(tur, acik) {
+        if (acik) map.addLayer(katmanlar[tur]);
+        else map.removeLayer(katmanlar[tur]);
+      }
+
+      // İsimle / mahalleyle arama
+      const aramaKutu = document.getElementById("arama-kutu");
+      const aramaSonuc = document.getElementById("arama-sonuc");
+
+      aramaKutu.addEventListener("input", () => {
+        const q = aramaKutu.value.trim().toLocaleLowerCase("tr-TR");
+        aramaSonuc.innerHTML = "";
+        if (q.length < 2) return;
+
+        const eslesenler = aramaIndeksi
+          .filter(
+            (p) =>
+              p.ad.toLocaleLowerCase("tr-TR").includes(q) ||
+              p.mahalle.toLocaleLowerCase("tr-TR").includes(q),
+          )
+          .slice(0, 8);
+
+        eslesenler.forEach((p) => {
+          const div = document.createElement("div");
+          div.textContent = p.mahalle ? `${p.ad} — ${p.mahalle}` : p.ad;
+          div.addEventListener("click", () => {
+            if (!katmanlar.park.hasLayer(p.layer)) {
+              document.getElementById("chk-park").checked = true;
+              toggleLayer("park", true);
+            }
+            map.setView(p.merkez, 16);
+            p.layer.openPopup();
+            aramaSonuc.innerHTML = "";
+            aramaKutu.value = "";
+          });
+          aramaSonuc.appendChild(div);
+        });
+      });
+
+      let enYakinMarker = null;
+      document.getElementById("en-yakin-btn").addEventListener("click", () => {
+        if (!navigator.geolocation)
+          return alert("Tarayıcınız konum özelliğini desteklemiyor.");
+        navigator.geolocation.getCurrentPosition(
+          async (pos) => {
+            const { latitude: lat, longitude: lon } = pos.coords;
+            const sonuclar = await fetch(
+              `${API}/tesisler/en-yakin?lon=${lon}&lat=${lat}&tur=tuvalet&limit=5`,
+            ).then((r) => r.json());
+
+            if (enYakinMarker) map.removeLayer(enYakinMarker);
+            enYakinMarker = L.marker([lat, lon])
+              .bindPopup("Buradasınız")
+              .addTo(map)
+              .openPopup();
+            map.setView([lat, lon], 15);
+
+            document.getElementById("sonuclar").innerHTML = sonuclar
+              .map(
+                (s) =>
+                  `<div><span>${s.ad || "İsimsiz tuvalet"}</span><span>${s.mesafe_m} m</span></div>`,
+              )
+              .join("");
+          },
+          () => alert("Konumunuza erişilemedi."),
+        );
+      });
+    </script>
+  </body>
+</html>
