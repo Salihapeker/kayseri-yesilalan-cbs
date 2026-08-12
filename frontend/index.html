@@ -17,96 +17,301 @@
       href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/MarkerCluster.Default.css"
     />
     <style>
+      :root {
+        --bg: #ffffff;
+        --bg-panel: #fafaf8;
+        --bg-card: #f4f4f1;
+        --bg-card-hover: #ebebe7;
+        --text-1: #1a1a18;
+        --text-2: #57564f;
+        --text-3: #8c8b82;
+        --border: #e4e3dc;
+        --accent: #2d6a4f;
+        --accent-dark: #1b4332;
+        --shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #16181a;
+          --bg-panel: #1c1e20;
+          --bg-card: #232527;
+          --bg-card-hover: #2b2e30;
+          --text-1: #f0f0ed;
+          --text-2: #b5b4ac;
+          --text-3: #83827a;
+          --border: #303234;
+          --accent: #4ade80;
+          --accent-dark: #22c55e;
+          --shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+        }
+      }
+      * {
+        box-sizing: border-box;
+      }
       html,
       body {
         margin: 0;
         height: 100%;
-        font-family: system-ui, sans-serif;
+        font-family: -apple-system, "Segoe UI", Roboto, Inter, sans-serif;
+        background: var(--bg);
+        color: var(--text-1);
       }
       #app {
         display: flex;
         height: 100%;
+        position: relative;
       }
       #sidebar {
-        width: 260px;
-        padding: 16px;
-        box-sizing: border-box;
-        background: #fafaf8;
-        border-right: 1px solid #ddd;
+        width: 280px;
+        padding: 20px;
+        background: var(--bg-panel);
+        border-right: 1px solid var(--border);
         overflow-y: auto;
+        z-index: 10;
       }
       #map {
         flex: 1;
       }
       h1 {
-        font-size: 16px;
-        margin: 0 0 16px;
+        font-size: 17px;
+        font-weight: 700;
+        margin: 0 0 18px;
+        letter-spacing: -0.01em;
+      }
+
+      input[type="text"] {
+        width: 100%;
+        padding: 10px 12px;
+        font-size: 14px;
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        background: var(--bg);
+        color: var(--text-1);
+      }
+      input[type="text"]:focus {
+        outline: none;
+        border-color: var(--accent);
+      }
+      #arama-sonuc {
+        margin-top: 6px;
+        max-height: 160px;
+        overflow-y: auto;
+      }
+      #arama-sonuc div {
+        padding: 8px 10px;
+        font-size: 13px;
+        cursor: pointer;
+        border-radius: 8px;
+        color: var(--text-2);
+      }
+      #arama-sonuc div:hover {
+        background: var(--bg-card);
+        color: var(--text-1);
+      }
+
+      .katman-baslik {
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--text-3);
+        margin: 20px 0 8px;
       }
       label {
         display: flex;
         align-items: center;
-        gap: 8px;
+        gap: 10px;
         font-size: 14px;
-        margin: 10px 0;
+        padding: 7px 4px;
         cursor: pointer;
+        color: var(--text-2);
+        border-radius: 8px;
+      }
+      label:hover {
+        background: var(--bg-card);
+        color: var(--text-1);
+      }
+      input[type="checkbox"] {
+        width: 16px;
+        height: 16px;
+        accent-color: var(--accent);
       }
       .dot {
-        width: 12px;
-        height: 12px;
+        width: 10px;
+        height: 10px;
         border-radius: 50%;
         display: inline-block;
         flex-shrink: 0;
       }
-      button {
+
+      button.ana-buton {
         width: 100%;
-        padding: 8px;
-        margin-top: 12px;
+        padding: 12px;
+        margin-top: 16px;
         cursor: pointer;
-        background: #2d6a4f;
-        color: white;
+        background: var(--accent);
+        color: #fff;
         border: none;
-        border-radius: 4px;
-      }
-      input[type="text"] {
-        width: 100%;
-        padding: 8px;
-        box-sizing: border-box;
+        border-radius: 12px;
         font-size: 14px;
-        border: 1px solid #ccc;
-        border-radius: 4px;
+        font-weight: 600;
       }
-      #arama-sonuc {
-        margin-top: 6px;
-        max-height: 180px;
-        overflow-y: auto;
+      button.ana-buton:hover {
+        background: var(--accent-dark);
       }
-      #arama-sonuc div {
-        padding: 6px 8px;
-        font-size: 13px;
-        cursor: pointer;
-        border-radius: 4px;
-      }
-      #arama-sonuc div:hover {
-        background: #eee;
-      }
-      #sonuclar {
-        margin-top: 12px;
-        font-size: 12px;
-      }
-      #sonuclar div {
-        display: flex;
-        justify-content: space-between;
-        padding: 4px 0;
-        border-bottom: 1px solid #eee;
-      }
-      .park-kart b {
-        display: inline-block;
-        min-width: 110px;
-      }
+
       hr {
         border: none;
-        border-top: 1px solid #ddd;
-        margin: 16px 0;
+        border-top: 1px solid var(--border);
+        margin: 18px 0;
+      }
+
+      #detay-panel {
+        position: absolute;
+        top: 16px;
+        right: -400px;
+        bottom: 16px;
+        width: 380px;
+        background: var(--bg);
+        border-radius: 20px;
+        box-shadow: var(--shadow);
+        transition: right 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+        overflow-y: auto;
+        z-index: 1000;
+      }
+      #detay-panel.acik {
+        right: 16px;
+      }
+      #detay-panel .ic {
+        padding: 26px;
+      }
+      #detay-kapat {
+        position: absolute;
+        top: 18px;
+        right: 18px;
+        background: var(--bg-card);
+        border: none;
+        border-radius: 50%;
+        width: 32px;
+        height: 32px;
+        cursor: pointer;
+        font-size: 14px;
+        color: var(--text-2);
+      }
+      #detay-kapat:hover {
+        background: var(--bg-card-hover);
+      }
+      .detay-ust {
+        font-size: 12px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: var(--accent);
+        margin-bottom: 6px;
+      }
+      .detay-baslik {
+        font-size: 23px;
+        font-weight: 700;
+        margin: 0 0 8px;
+        letter-spacing: -0.015em;
+        line-height: 1.25;
+        padding-right: 40px;
+      }
+      .detay-alt {
+        font-size: 14px;
+        color: var(--text-2);
+        margin-bottom: 22px;
+      }
+      .neler-yapabilirsin {
+        font-size: 12px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: var(--text-3);
+        margin-bottom: 12px;
+      }
+
+      .madde-satir {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px;
+        background: var(--bg-card);
+        border-radius: 14px;
+        margin-bottom: 8px;
+      }
+      .madde-ikon {
+        width: 38px;
+        height: 38px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 17px;
+        flex-shrink: 0;
+      }
+      .madde-metin {
+        font-size: 14px;
+        color: var(--text-1);
+        line-height: 1.45;
+      }
+      .madde-metin b {
+        font-weight: 600;
+      }
+      .madde-metin .alt-bilgi {
+        display: block;
+        font-size: 12.5px;
+        color: var(--text-3);
+        margin-top: 1px;
+      }
+
+      .yol-tarifi-btn {
+        background: var(--accent);
+        color: #fff;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 14px;
+        border-radius: 14px;
+        font-size: 15px;
+        font-weight: 600;
+        margin-top: 20px;
+      }
+      .yol-tarifi-btn:hover {
+        background: var(--accent-dark);
+      }
+      .yukleniyor-yazi {
+        font-size: 13px;
+        color: var(--text-3);
+        padding: 26px;
+      }
+
+      #yakinimdakiler-liste {
+        margin-top: 12px;
+      }
+      #yakinimdakiler-liste .satir {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 6px;
+        border-bottom: 1px solid var(--border);
+        font-size: 13px;
+      }
+      #yakinimdakiler-liste .satir .isim {
+        font-weight: 600;
+        color: var(--text-1);
+      }
+      #yakinimdakiler-liste .satir .tur {
+        color: var(--text-3);
+        font-size: 11.5px;
+      }
+      #yakinimdakiler-liste .satir .mesafe {
+        color: var(--accent);
+        font-weight: 700;
+        white-space: nowrap;
+        font-size: 12.5px;
       }
     </style>
   </head>
@@ -122,8 +327,7 @@
         />
         <div id="arama-sonuc"></div>
 
-        <hr />
-
+        <div class="katman-baslik">Katmanlar</div>
         <label
           ><input type="checkbox" id="chk-park" checked /><span
             class="dot"
@@ -187,56 +391,63 @@
           ></span>
           Piknik alanları</label
         >
-        <button id="en-yakin-btn">Bana en yakın tuvaleti bul</button>
-        <div id="sonuclar"></div>
+
+        <button class="ana-buton" id="yakinim-btn">
+          Yakınımdakileri göster
+        </button>
+        <div id="yakinimdakiler-liste"></div>
       </div>
+
       <div id="map"></div>
+
+      <div id="detay-panel">
+        <div class="ic">
+          <button id="detay-kapat">✕</button>
+          <div id="detay-icerik">
+            <p class="yukleniyor-yazi">Yükleniyor...</p>
+          </div>
+        </div>
+      </div>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/leaflet.markercluster.js"></script>
     <script>
       const API = "http://localhost:3000/api";
+      const koyuMod = window.matchMedia("(prefers-color-scheme: dark)").matches;
+
       const map = L.map("map").setView([38.7312, 35.4787], 12);
 
       const kayseriSinirlari = L.latLngBounds([37.5, 34.5], [39.3, 36.8]);
       map.setMaxBounds(kayseriSinirlari);
       map.setMinZoom(9);
 
-      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        attribution: "&copy; OpenStreetMap katkıda bulunanlar",
+      const tileUrl = koyuMod
+        ? "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+        : "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
+
+      L.tileLayer(tileUrl, {
+        attribution: "&copy; OpenStreetMap katkıda bulunanlar &copy; CARTO",
       }).addTo(map);
 
       function kumeOlustur(renk) {
         return L.markerClusterGroup({
           iconCreateFunction: (cluster) =>
             L.divIcon({
-              html: `<div style="background:${renk}; color:#fff; width:34px; height:34px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:600; border:2px solid #fff;">${cluster.getChildCount()}</div>`,
+              html: `<div style="background:${renk}; color:#fff; width:34px; height:34px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700; border:2px solid #fff; box-shadow:0 2px 8px rgba(0,0,0,0.25);">${cluster.getChildCount()}</div>`,
               className: "",
               iconSize: [34, 34],
             }),
         });
       }
-
       function noktaCiz(latlng, renk) {
         return L.circleMarker(latlng, {
           radius: 6,
           fillColor: renk,
           color: "#fff",
-          weight: 1,
-          fillOpacity: 0.9,
+          weight: 1.5,
+          fillOpacity: 0.95,
         });
-      }
-
-      function varYok(n) {
-        return n > 0 ? `Var (${n})` : "Yok";
-      }
-
-      function alanYaz(m2) {
-        if (!m2) return "";
-        return m2 > 10000
-          ? `${(m2 / 10000).toFixed(1)} hektar`
-          : `${m2.toLocaleString("tr-TR")} m²`;
       }
 
       const renkler = {
@@ -250,6 +461,29 @@
         bank: "#78716c",
         piknik_alani: "#65a30d",
       };
+      const turAdlari = {
+        tuvalet: "Tuvalet",
+        cocuk_oyun_alani: "Çocuk oyun alanı",
+        spor_sahasi: "Spor sahası",
+        cesme: "Çeşme",
+        otopark: "Otopark",
+        kafeterya: "Kafeterya",
+        bank: "Bank",
+        piknik_alani: "Piknik alanı",
+        park: "Park",
+      };
+      const turIkonlari = {
+        tuvalet: "🚻",
+        cocuk_oyun_alani: "🧒",
+        spor_sahasi: "⚽",
+        cesme: "💧",
+        otopark: "🅿️",
+        kafeterya: "☕",
+        bank: "🪑",
+        piknik_alani: "🧺",
+        park: "🌳",
+      };
+
       const katmanlar = {
         park: L.layerGroup().addTo(map),
         tuvalet: kumeOlustur(renkler.tuvalet),
@@ -261,38 +495,98 @@
         bank: kumeOlustur(renkler.bank),
         piknik_alani: kumeOlustur(renkler.piknik_alani),
       };
-      // Arama için tüm parkları hafızada tutuyoruz (ad + koordinat + katman referansı)
+
       const aramaIndeksi = [];
 
-      function parkPopupAc(layer, props) {
-        layer.bindPopup("Yükleniyor...");
-        layer.on("popupopen", async () => {
-          const detay = await fetch(`${API}/yesil-alanlar/${props.id}`).then(
-            (r) => r.json(),
+      function alanYaz(m2) {
+        if (!m2) return "";
+        return m2 > 10000
+          ? `${(m2 / 10000).toFixed(1)} hektar`
+          : `${m2.toLocaleString("tr-TR")} m²`;
+      }
+      function mesafeYaz(m) {
+        return m >= 1000 ? `${(m / 1000).toFixed(1)} km` : `${m} m`;
+      }
+      function rengiSoluklastir(hex, opaklik) {
+        const r = parseInt(hex.slice(1, 3), 16),
+          g = parseInt(hex.slice(3, 5), 16),
+          b = parseInt(hex.slice(5, 7), 16);
+        return `rgba(${r},${g},${b},${opaklik})`;
+      }
+
+      const detayPanel = document.getElementById("detay-panel");
+      const detayIcerik = document.getElementById("detay-icerik");
+
+      function panelKapat() {
+        detayPanel.classList.remove("acik");
+      }
+      document
+        .getElementById("detay-kapat")
+        .addEventListener("click", panelKapat);
+
+      async function parkDetayGoster(parkId, merkezLatLng) {
+        detayPanel.classList.add("acik");
+        detayIcerik.innerHTML = '<p class="yukleniyor-yazi">Yükleniyor...</p>';
+
+        const detay = await fetch(`${API}/yesil-alanlar/${parkId}`).then((r) =>
+          r.json(),
+        );
+        const o = detay.tesis_ozeti;
+        const ek = detay.ek_ozellikler || {};
+
+        const [lon, lat] = merkezLatLng;
+        const yolTarifiUrl = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lon}`;
+
+        const turler = [
+          "tuvalet",
+          "cocuk_oyun_alani",
+          "spor_sahasi",
+          "cesme",
+          "kafeterya",
+          "otopark",
+        ];
+        const satirlar = [];
+
+        for (const tur of turler) {
+          const adet = o[tur] || 0;
+          const renk = renkler[tur];
+          if (adet > 0) {
+            satirlar.push(
+              `<div class="madde-satir"><div class="madde-ikon" style="background:${rengiSoluklastir(renk, 0.15)}">${turIkonlari[tur]}</div><div class="madde-metin"><b>${turAdlari[tur]} var</b>${adet > 1 ? `<span class="alt-bilgi">${adet} tane</span>` : ""}</div></div>`,
+            );
+          } else {
+            const alternatif = await fetch(
+              `${API}/tesisler/en-yakin?lon=${lon}&lat=${lat}&tur=${tur}&limit=1`,
+            ).then((r) => r.json());
+            const altYazi =
+              alternatif.length > 0
+                ? `<span class="alt-bilgi">En yakını ${alternatif[0].park_adi ? alternatif[0].park_adi : alternatif[0].ad || turAdlari[tur]} · ${mesafeYaz(alternatif[0].mesafe_m)}</span>`
+                : "";
+            satirlar.push(
+              `<div class="madde-satir"><div class="madde-ikon" style="background:${rengiSoluklastir(renk, 0.08)}; opacity:0.6">${turIkonlari[tur]}</div><div class="madde-metin"><b>${turAdlari[tur]} yok</b>${altYazi}</div></div>`,
+            );
+          }
+        }
+
+        const ekSatirlar = [];
+        if (ek.aydinlatma)
+          ekSatirlar.push(
+            `<div class="madde-satir"><div class="madde-ikon" style="background:${rengiSoluklastir("#eab308", 0.15)}">💡</div><div class="madde-metin"><b>Aydınlatma var</b></div></div>`,
           );
-          const o = detay.tesis_ozeti;
-          const ek = detay.ek_ozellikler || {};
-          layer.setPopupContent(`
-      <div class="park-kart">
-        <b style="font-size:14px;">${detay.ad}</b><br>
-        ${detay.mahalle || ""} ${detay.alan_m2 ? "· " + alanYaz(detay.alan_m2) : ""}<br><br>
-        <b>Tuvalet:</b> ${varYok(o.tuvalet)}<br>
-        <b>Çocuk oyun alanı:</b> ${varYok(o.cocuk_oyun_alani)}<br>
-        <b>Spor sahası:</b> ${varYok(o.spor_sahasi)}<br>
-        <b>Çeşme:</b> ${varYok(o.cesme)}<br>
-        <b>Otopark:</b> ${varYok(o.otopark)}
-        <b>Otopark:</b> ${varYok(o.otopark)}<br>
-<b>Kafeterya:</b> ${varYok(o.kafeterya)}<br>
-<b>Bank:</b> ${varYok(o.bank)}<br>
-<b>Piknik alanı:</b> ${varYok(o.piknik_alani)}
-<b>Piknik alanı:</b> ${varYok(o.piknik_alani)}
-${ek.aydinlatma !== undefined ? `<br><b>Aydınlatma:</b> ${ek.aydinlatma ? "Var" : "Yok"}` : ""}
-${ek.engelli_erisimi !== undefined ? `<br><b>Engelli erişimi:</b> ${ek.engelli_erisimi ? "Var" : "Yok"}` : ""}
-${ek.acilis_saatleri ? `<br><b>Açılış saatleri:</b> ${ek.acilis_saatleri}` : ""}
-${ek.otopark_kapasitesi ? `<br><b>Otopark kapasitesi:</b> ${ek.otopark_kapasitesi} araç` : ""}
-      </div>
-    `);
-        });
+        if (ek.engelli_erisimi)
+          ekSatirlar.push(
+            `<div class="madde-satir"><div class="madde-ikon" style="background:${rengiSoluklastir("#0ea5e9", 0.15)}">♿</div><div class="madde-metin"><b>Engelli erişimi var</b></div></div>`,
+          );
+
+        detayIcerik.innerHTML = `
+    <div class="detay-ust">${detay.mahalle || "Kayseri"}</div>
+    <div class="detay-baslik">${detay.ad}</div>
+    <div class="detay-alt">${ek.acilis_saatleri ? ek.acilis_saatleri + " · " : ""}${alanYaz(detay.alan_m2)}</div>
+    <div class="neler-yapabilirsin">Burada neler yapabilirsin</div>
+    ${satirlar.join("")}
+    ${ekSatirlar.join("")}
+    <a class="yol-tarifi-btn" href="${yolTarifiUrl}" target="_blank" rel="noopener">Yol tarifini aç</a>
+  `;
       }
 
       fetch(`${API}/yesil-alanlar`)
@@ -310,16 +604,21 @@ ${ek.otopark_kapasitesi ? `<br><b>Otopark kapasitesi:</b> ${ek.otopark_kapasites
 
           parkLayer.eachLayer((layer) => {
             const props = layer.feature.properties;
-            parkPopupAc(layer, props);
+            const merkez = layer.getBounds
+              ? layer.getBounds().getCenter()
+              : layer.getLatLng();
+
+            layer.on("click", () =>
+              parkDetayGoster(props.id, [merkez.lng, merkez.lat]),
+            );
             katmanlar.park.addLayer(layer);
 
             aramaIndeksi.push({
               ad: props.ad,
               mahalle: props.mahalle || "",
-              layer: layer,
-              merkez: layer.getBounds
-                ? layer.getBounds().getCenter()
-                : layer.getLatLng(),
+              layer,
+              merkez,
+              id: props.id,
             });
           });
         });
@@ -333,7 +632,7 @@ ${ek.otopark_kapasitesi ? `<br><b>Otopark kapasitesi:</b> ${ek.otopark_kapasites
             const renk = renkler[tur];
             if (!renk) return;
             const marker = noktaCiz([lat, lon], renk).bindPopup(
-              `<b>${f.properties.ad || "İsimsiz"}</b><br>Park: ${f.properties.park_adi || "-"}`,
+              `<b>${f.properties.ad || turAdlari[tur]}</b><br>Park: ${f.properties.park_adi || "-"}`,
             );
             katmanlar[tur].addLayer(marker);
           });
@@ -384,12 +683,12 @@ ${ek.otopark_kapasitesi ? `<br><b>Otopark kapasitesi:</b> ${ek.otopark_kapasites
         .addEventListener("change", (e) =>
           toggleLayer("piknik_alani", e.target.checked),
         );
+
       function toggleLayer(tur, acik) {
         if (acik) map.addLayer(katmanlar[tur]);
         else map.removeLayer(katmanlar[tur]);
       }
 
-      // İsimle / mahalleyle arama
       const aramaKutu = document.getElementById("arama-kutu");
       const aramaSonuc = document.getElementById("arama-sonuc");
 
@@ -398,53 +697,57 @@ ${ek.otopark_kapasitesi ? `<br><b>Otopark kapasitesi:</b> ${ek.otopark_kapasites
         aramaSonuc.innerHTML = "";
         if (q.length < 2) return;
 
-        const eslesenler = aramaIndeksi
+        aramaIndeksi
           .filter(
             (p) =>
               p.ad.toLocaleLowerCase("tr-TR").includes(q) ||
               p.mahalle.toLocaleLowerCase("tr-TR").includes(q),
           )
-          .slice(0, 8);
-
-        eslesenler.forEach((p) => {
-          const div = document.createElement("div");
-          div.textContent = p.mahalle ? `${p.ad} — ${p.mahalle}` : p.ad;
-          div.addEventListener("click", () => {
-            if (!katmanlar.park.hasLayer(p.layer)) {
-              document.getElementById("chk-park").checked = true;
-              toggleLayer("park", true);
-            }
-            map.setView(p.merkez, 16);
-            p.layer.openPopup();
-            aramaSonuc.innerHTML = "";
-            aramaKutu.value = "";
+          .slice(0, 8)
+          .forEach((p) => {
+            const div = document.createElement("div");
+            div.textContent = p.mahalle ? `${p.ad} — ${p.mahalle}` : p.ad;
+            div.addEventListener("click", () => {
+              if (!katmanlar.park.hasLayer(p.layer)) {
+                document.getElementById("chk-park").checked = true;
+                toggleLayer("park", true);
+              }
+              map.setView(p.merkez, 16);
+              parkDetayGoster(p.id, [p.merkez.lng, p.merkez.lat]);
+              aramaSonuc.innerHTML = "";
+              aramaKutu.value = "";
+            });
+            aramaSonuc.appendChild(div);
           });
-          aramaSonuc.appendChild(div);
-        });
       });
 
-      let enYakinMarker = null;
-      document.getElementById("en-yakin-btn").addEventListener("click", () => {
+      document.getElementById("yakinim-btn").addEventListener("click", () => {
         if (!navigator.geolocation)
           return alert("Tarayıcınız konum özelliğini desteklemiyor.");
         navigator.geolocation.getCurrentPosition(
           async (pos) => {
             const { latitude: lat, longitude: lon } = pos.coords;
-            const sonuclar = await fetch(
-              `${API}/tesisler/en-yakin?lon=${lon}&lat=${lat}&tur=tuvalet&limit=5`,
-            ).then((r) => r.json());
 
-            if (enYakinMarker) map.removeLayer(enYakinMarker);
-            enYakinMarker = L.marker([lat, lon])
+            if (window._konumMarker) map.removeLayer(window._konumMarker);
+            window._konumMarker = L.marker([lat, lon])
               .bindPopup("Buradasınız")
               .addTo(map)
               .openPopup();
             map.setView([lat, lon], 15);
 
-            document.getElementById("sonuclar").innerHTML = sonuclar
+            const sonuclar = await fetch(
+              `${API}/yakinimdakiler?lon=${lon}&lat=${lat}&limit=10`,
+            ).then((r) => r.json());
+
+            const kutu = document.getElementById("yakinimdakiler-liste");
+            kutu.innerHTML = sonuclar
               .map(
-                (s) =>
-                  `<div><span>${s.ad || "İsimsiz tuvalet"}</span><span>${s.mesafe_m} m</span></div>`,
+                (s) => `
+      <div class="satir">
+        <span>${turIkonlari[s.tur] || "📍"} <span class="isim">${s.ad || turAdlari[s.tur]}</span> <span class="tur">${s.park_adi ? "· " + s.park_adi : ""}</span></span>
+        <span class="mesafe">${mesafeYaz(s.mesafe_m)}</span>
+      </div>
+    `,
               )
               .join("");
           },
