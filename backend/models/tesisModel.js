@@ -89,3 +89,6 @@ export async function sonEklenenleriGetir() {
     .sort((a, b) => new Date(b.olusturma_tarihi) - new Date(a.olusturma_tarihi))
     .slice(0, 10);
 }
+export async function guncelle(id, { ad }) {
+  await pool.query(`UPDATE tesisler SET ad = $1 WHERE id = $2`, [ad, id]);
+}

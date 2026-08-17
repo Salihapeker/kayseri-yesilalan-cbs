@@ -71,3 +71,23 @@ export async function olustur({ ad, mahalle, geojson }) {
   );
   return rows[0].id;
 }
+export async function hizliTesisEkle(parkId, tur) {
+  const { rows } = await pool.query(
+    `INSERT INTO tesisler (tur, yesil_alan_id, konum)
+     SELECT $2, $1, konum FROM yesil_alanlar WHERE id = $1
+     RETURNING id`,
+    [parkId, tur],
+  );
+  return rows[0]?.id;
+}
+export async function tesisSilBirTane(parkId, tur) {
+  const { rows } = await pool.query(
+    `SELECT id FROM tesisler WHERE yesil_alan_id = $1 AND tur = $2 AND durum = 'aktif' ORDER BY id DESC LIMIT 1`,
+    [parkId, tur],
+  );
+  if (rows.length === 0) return null;
+  await pool.query(`UPDATE tesisler SET durum = 'silindi' WHERE id = $1`, [
+    rows[0].id,
+  ]);
+  return rows[0].id;
+}

@@ -44,3 +44,14 @@ export async function olustur(req, res) {
   const id = await YesilAlanModel.olustur(req.body);
   res.status(201).json({ id });
 }
+export async function hizliTesisEkle(req, res) {
+  const id = await YesilAlanModel.hizliTesisEkle(req.params.id, req.body.tur);
+  res.status(201).json({ id });
+}
+export async function tesisSilBirTane(req, res) {
+  const id = await YesilAlanModel.tesisSilBirTane(
+    req.params.id,
+    req.params.tur,
+  );
+  res.json({ id });
+}

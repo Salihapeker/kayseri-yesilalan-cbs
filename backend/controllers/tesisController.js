@@ -60,3 +60,8 @@ export async function sonEklenenler(req, res) {
   const rows = await TesisModel.sonEklenenleriGetir();
   res.json(rows);
 }
+
+export async function guncelle(req, res) {
+  await TesisModel.guncelle(req.params.id, req.body);
+  res.sendStatus(204);
+}

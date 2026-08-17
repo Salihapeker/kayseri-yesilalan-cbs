@@ -1,381 +1,110 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="tr">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Kayseri CBS - Yönetim Paneli</title>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css" />
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/MarkerCluster.css" />
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/MarkerCluster.Default.css" />
-<style>
-  html, body { margin: 0; height: 100%; font-family: system-ui, sans-serif; }
-  #app { display: flex; height: 100%; }
-  #sidebar { width: 300px; padding: 16px; box-sizing: border-box; background: #fafaf8; border-right: 1px solid #ddd; overflow-y: auto; }
-  #map { flex: 1; }
-  h1 { font-size: 15px; margin: 16px 0 4px; }
-  h1:first-child { margin-top: 0; }
-  p.hint { font-size: 12px; color: #666; margin: 0 0 12px; }
-  label { display: block; font-size: 12px; margin: 8px 0 3px; }
-  input[type=text], input[type=number], select { width: 100%; padding: 7px; box-sizing: border-box; font-size: 13px; }
-  button { padding: 7px; margin-top: 10px; cursor: pointer; background: #2d6a4f; color: white; border: none; border-radius: 4px; font-size: 13px; width: 100%; }
-  button.tehlike { background: #b91c1c; }
-  hr { border: none; border-top: 1px solid #ddd; margin: 16px 0; }
-  #arama-sonuc div { padding: 6px 8px; font-size: 13px; cursor: pointer; border-radius: 4px; }
-  #arama-sonuc div:hover { background: #eee; }
-  .checkbox-satir { display: flex; align-items: center; gap: 6px; margin: 8px 0; }
-  .checkbox-satir input { width: auto; }
-  .checkbox-satir label { margin: 0; font-size: 13px; }
-  #duzenle-durum { font-size: 12px; margin-top: 8px; }
-  #duzenle-form { display: none; }
-  #ozet-kart { font-size: 12px; background: white; border: 1px solid #ddd; border-radius: 6px; padding: 8px 10px; margin: 8px 0; }
-  #ozet-kart div { display: flex; justify-content: space-between; padding: 2px 0; }
-  #son-eklenenler-liste div { font-size: 12px; padding: 5px 6px; border-bottom: 1px solid #eee; cursor: pointer; display: flex; justify-content: space-between; }
-  #son-eklenenler-liste div:hover { background: #eee; }
-  #son-eklenenler-liste span.tur-etiket { color: #888; font-size: 11px; }
-  .mini-form label { display: block; font-size: 12px; margin: 6px 0 2px; }
-  .mini-form input, .mini-form select { width: 100%; padding: 5px; box-sizing: border-box; font-size: 13px; }
-  .mini-form button { width: 100%; margin-top: 8px; padding: 6px; cursor: pointer; background: #2d6a4f; color: white; border: none; border-radius: 4px; font-size: 13px; }
-  .mini-form .durum { margin-top: 6px; font-size: 12px; }
-  .leaflet-popup-content { margin: 10px 12px; }
-  .isim-etiket { background: rgba(255,255,255,0.9); border: none; box-shadow: 0 1px 3px rgba(0,0,0,0.3); font-size: 11px; padding: 1px 5px; }
-</style>
-</head>
-<body>
-<div id="app">
-  <div id="sidebar">
-    <h1>Son eklenenler</h1>
-    <div id="son-eklenenler-liste">Yükleniyor...</div>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Kayseri CBS - Yönetim Paneli</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/MarkerCluster.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/MarkerCluster.Default.css"
+    />
+    <link rel="stylesheet" href="css/admin.css" />
+  </head>
+  <body>
+    <div id="app">
+      <div id="sidebar">
+        <h1>Son eklenenler</h1>
+        <div id="son-eklenenler-liste">Yükleniyor...</div>
 
-    <hr>
+        <hr />
 
-    <h1>Mevcut parkı düzenle</h1>
-    <p class="hint">İsimle ara ya da haritadaki bir parka tıkla.</p>
-    <input type="text" id="arama-kutu" placeholder="Park adı ara..." />
-    <div id="arama-sonuc"></div>
+        <h1>Park ara</h1>
+        <p class="hint">
+          İsimle ara ya da haritadaki bir parka tıkla — düzenleme penceresi
+          açılır.
+        </p>
+        <input type="text" id="arama-kutu" placeholder="Park adı ara..." />
+        <div id="arama-sonuc"></div>
 
-    <div id="duzenle-form">
-      <hr>
-      <b id="secili-park-adi"></b>
-      <div id="ozet-kart"></div>
-
-      <label>İsim</label>
-      <input type="text" id="ozellik-isim" />
-
-      <label>Mahalle</label>
-      <input type="text" id="ozellik-mahalle" />
-
-      <div class="checkbox-satir">
-        <input type="checkbox" id="ozellik-aydinlatma" />
-        <label for="ozellik-aydinlatma">Aydınlatma var</label>
+        <hr />
+        <p class="hint">
+          <b>Yeni ekleme:</b> Haritada nokta veya alan çiz, üstünde açılan formu
+          doldur.
+        </p>
       </div>
-      <div class="checkbox-satir">
-        <input type="checkbox" id="ozellik-engelli" />
-        <label for="ozellik-engelli">Engelli erişimi var</label>
-      </div>
-
-      <label>Açılış saatleri</label>
-      <input type="text" id="ozellik-saatler" placeholder="Örn. 06:00 - 24:00" />
-
-      <label>Otopark kapasitesi (araç)</label>
-      <input type="number" id="ozellik-otopark-kapasite" placeholder="Örn. 40" />
-
-      <button id="ozellik-kaydet-btn">Bu parkı güncelle</button>
-      <button id="park-sil-btn" class="tehlike">Bu parkı sil</button>
-      <div id="duzenle-durum"></div>
+      <div id="map"></div>
     </div>
 
-    <hr>
-    <p class="hint"><b>Yeni ekleme:</b> Haritada nokta veya alan çiz, üstünde açılan formu doldur.</p>
-  </div>
-  <div id="map"></div>
-</div>
+    <!-- Düzenleme penceresi -->
+    <div id="modal-overlay">
+      <div id="modal">
+        <button id="modal-kapat">✕</button>
+        <input
+          type="text"
+          id="modal-isim"
+          class="modal-baslik-input"
+          placeholder="Park adı"
+        />
+        <input
+          type="text"
+          id="modal-mahalle"
+          class="modal-alt-input"
+          placeholder="Mahalle"
+        />
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/leaflet.markercluster.js"></script>
-<script>
-const API = 'http://localhost:3000/api';
-const map = L.map('map').setView([38.7312, 35.4787], 12);
+        <div class="modal-bolum-baslik">Tesisler</div>
+        <div id="modal-tesisler"></div>
 
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-  attribution: '&copy; OpenStreetMap katkıda bulunanlar'
-}).addTo(map);
+        <div class="modal-bolum-baslik">Diğer özellikler</div>
+        <div class="checkbox-satir">
+          <input type="checkbox" id="ozellik-aydinlatma" />
+          <label for="ozellik-aydinlatma">Aydınlatma var</label>
+        </div>
+        <div class="checkbox-satir">
+          <input type="checkbox" id="ozellik-engelli" />
+          <label for="ozellik-engelli">Genel engelli erişimi var</label>
+        </div>
+        <label>Açılış saatleri</label>
+        <input
+          type="text"
+          id="ozellik-saatler"
+          placeholder="Örn. 06:00 - 24:00"
+        />
+        <label>Otopark kapasitesi (araç)</label>
+        <input
+          type="number"
+          id="ozellik-otopark-kapasite"
+          placeholder="Örn. 40"
+        />
 
-function varYok(n) { return n > 0 ? `Var (${n})` : 'Yok'; }
+        <button id="detayli-goster-btn" class="ikincil-buton">
+          Tesisleri tek tek isimlendir ▾
+        </button>
+        <div id="modal-tesis-liste" style="display: none"></div>
 
-// ---------- Mevcut parkları ve tesisleri haritaya yükle ----------
-let parkGosterimKatmani;
-let parkListesi = [];
-const seciliLayerHaritasi = {}; // id -> Leaflet layer, silme sonrası haritadan kaldırmak için
-
-function parklariYukle() {
-  if (parkGosterimKatmani) map.removeLayer(parkGosterimKatmani);
-  parkListesi = [];
-
-  fetch(`${API}/yesil-alanlar`).then(r => r.json()).then(data => {
-    parkGosterimKatmani = L.geoJSON(data, {
-      style: { color: '#1b4332', weight: 1.5, fillColor: '#2d6a4f', fillOpacity: 0.35 },
-      pointToLayer: (f, latlng) => L.circleMarker(latlng, { radius: 6, fillColor: '#2d6a4f', color: '#fff', weight: 1, fillOpacity: 0.9 }),
-      onEachFeature: (feature, layer) => {
-        layer.bindTooltip(feature.properties.ad, { permanent: false, className: 'isim-etiket' });
-        layer.on('click', () => parkSec(feature.properties.id, feature.properties.ad));
-        seciliLayerHaritasi['park-' + feature.properties.id] = layer;
-      }
-    }).addTo(map);
-
-    parkListesi = data.features.map(f => ({ id: f.properties.id, ad: f.properties.ad }));
-  });
-}
-parklariYukle();
-
-function tesisleriYukle() {
-  const tesisKumesi = L.markerClusterGroup();
-  map.addLayer(tesisKumesi);
-  fetch(`${API}/tesisler`).then(r => r.json()).then(data => {
-    data.features.forEach(f => {
-      const [lon, lat] = f.geometry.coordinates;
-      const marker = L.circleMarker([lat, lon], { radius: 5, fillColor: '#6b7280', color: '#fff', weight: 1, fillOpacity: 0.9 })
-        .bindTooltip(f.properties.ad || f.properties.tur, { className: 'isim-etiket' });
-      tesisKumesi.addLayer(marker);
-    });
-  });
-}
-tesisleriYukle();
-
-// ---------- Son eklenenler ----------
-function sonEklenenleriYukle() {
-  fetch(`${API}/son-eklenenler`).then(r => r.json()).then(liste => {
-    const kutu = document.getElementById('son-eklenenler-liste');
-    if (liste.length === 0) { kutu.innerHTML = '<p class="hint">Henüz kayıt yok.</p>'; return; }
-
-    kutu.innerHTML = '';
-    liste.forEach(item => {
-      const div = document.createElement('div');
-      div.innerHTML = `<span>${item.ad || 'İsimsiz'}</span><span class="tur-etiket">${item.tip}</span>`;
-      if (item.tip === 'park') {
-        div.addEventListener('click', () => parkSec(item.id, item.ad));
-      }
-      kutu.appendChild(div);
-    });
-  });
-}
-sonEklenenleriYukle();
-
-// ---------- Arama ve düzenleme paneli ----------
-let seciliParkId = null;
-
-const aramaKutu = document.getElementById('arama-kutu');
-const aramaSonuc = document.getElementById('arama-sonuc');
-
-aramaKutu.addEventListener('input', () => {
-  const q = aramaKutu.value.trim().toLocaleLowerCase('tr-TR');
-  aramaSonuc.innerHTML = '';
-  if (q.length < 2) return;
-
-  parkListesi
-    .filter(p => p.ad.toLocaleLowerCase('tr-TR').includes(q))
-    .slice(0, 8)
-    .forEach(p => {
-      const div = document.createElement('div');
-      div.textContent = p.ad;
-      div.addEventListener('click', () => parkSec(p.id, p.ad));
-      aramaSonuc.appendChild(div);
-    });
-});
-
-async function parkSec(id, ad) {
-  seciliParkId = id;
-  aramaSonuc.innerHTML = '';
-  aramaKutu.value = '';
-  document.getElementById('secili-park-adi').textContent = ad;
-  document.getElementById('duzenle-form').style.display = 'block';
-  document.getElementById('duzenle-durum').textContent = '';
-  document.getElementById('ozet-kart').innerHTML = 'Yükleniyor...';
-
-  const detay = await fetch(`${API}/yesil-alanlar/${id}`).then(r => r.json());
-  if (detay.error) {
-    document.getElementById('ozet-kart').innerHTML = 'Bu kayıt bulunamadı (silinmiş olabilir).';
-    return;
-  }
-  const o = detay.tesis_ozeti;
-  const ek = detay.ek_ozellikler || {};
-
-  document.getElementById('ozet-kart').innerHTML = `
-    <div><span>Tuvalet</span><span>${varYok(o.tuvalet)}</span></div>
-    <div><span>Çocuk oyun alanı</span><span>${varYok(o.cocuk_oyun_alani)}</span></div>
-    <div><span>Spor sahası</span><span>${varYok(o.spor_sahasi)}</span></div>
-    <div><span>Çeşme</span><span>${varYok(o.cesme)}</span></div>
-    <div><span>Otopark</span><span>${varYok(o.otopark)}</span></div>
-    <div><span>Kafeterya</span><span>${varYok(o.kafeterya)}</span></div>
-  `;
-
-  document.getElementById('ozellik-isim').value = detay.ad || '';
-  document.getElementById('ozellik-mahalle').value = detay.mahalle || '';
-  document.getElementById('ozellik-aydinlatma').checked = !!ek.aydinlatma;
-  document.getElementById('ozellik-engelli').checked = !!ek.engelli_erisimi;
-  document.getElementById('ozellik-saatler').value = ek.acilis_saatleri || '';
-  document.getElementById('ozellik-otopark-kapasite').value = ek.otopark_kapasitesi || '';
-
-  if (detay.geometry) {
-    const gecici = L.geoJSON(detay.geometry);
-    map.fitBounds(gecici.getBounds(), { maxZoom: 16 });
-  }
-}
-
-document.getElementById('ozellik-kaydet-btn').addEventListener('click', async () => {
-  if (!seciliParkId) return;
-  const durum = document.getElementById('duzenle-durum');
-
-  const ad = document.getElementById('ozellik-isim').value.trim();
-  const mahalle = document.getElementById('ozellik-mahalle').value.trim();
-
-  const ozellikler = {
-    aydinlatma: document.getElementById('ozellik-aydinlatma').checked,
-    engelli_erisimi: document.getElementById('ozellik-engelli').checked,
-    acilis_saatleri: document.getElementById('ozellik-saatler').value.trim(),
-    otopark_kapasitesi: document.getElementById('ozellik-otopark-kapasite').value
-      ? parseInt(document.getElementById('ozellik-otopark-kapasite').value) : null
-  };
-
-  try {
-    await fetch(`${API}/yesil-alanlar/${seciliParkId}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ad, mahalle })
-    });
-    await fetch(`${API}/yesil-alanlar/${seciliParkId}/ozellikler`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(ozellikler)
-    });
-    durum.textContent = 'Güncellendi ✓';
-    durum.style.color = 'green';
-    parklariYukle();
-    sonEklenenleriYukle();
-  } catch (err) {
-    durum.textContent = 'Hata: ' + err.message;
-    durum.style.color = 'crimson';
-  }
-});
-
-document.getElementById('park-sil-btn').addEventListener('click', async () => {
-  if (!seciliParkId) return;
-  if (!confirm('Bu parkı silmek istediğine emin misin? Bu işlem geri alınamaz.')) return;
-
-  const durum = document.getElementById('duzenle-durum');
-  try {
-    await fetch(`${API}/yesil-alanlar/${seciliParkId}`, { method: 'DELETE' });
-    durum.textContent = 'Silindi.';
-    document.getElementById('duzenle-form').style.display = 'none';
-    seciliParkId = null;
-    parklariYukle();
-    sonEklenenleriYukle();
-  } catch (err) {
-    durum.textContent = 'Hata: ' + err.message;
-    durum.style.color = 'crimson';
-  }
-});
-
-// ---------- Yeni ekleme: haritada çizim ----------
-const cizimKatmani = new L.FeatureGroup();
-map.addLayer(cizimKatmani);
-
-const cizimKontrol = new L.Control.Draw({
-  draw: { marker: true, polygon: true, polyline: false, rectangle: false, circle: false, circlemarker: false },
-  edit: { featureGroup: cizimKatmani }
-});
-map.addControl(cizimKontrol);
-
-let sayac = 0;
-
-map.on(L.Draw.Event.CREATED, (e) => {
-  const layer = e.layer;
-  const tip = e.layerType;
-  const kimlik = 'sekil-' + (sayac++);
-
-  cizimKatmani.addLayer(layer);
-
-  const formHtml = tip === 'polygon'
-    ? `
-      <div class="mini-form" data-id="${kimlik}">
-        <b>Yeni park sınırı</b>
-        <label>İsim</label>
-        <input type="text" id="isim-${kimlik}" placeholder="Park adı" />
-        <label>Mahalle</label>
-        <input type="text" id="mahalle-${kimlik}" placeholder="Opsiyonel" />
-        <button id="kaydet-${kimlik}">Kaydet</button>
-        <div class="durum" id="durum-${kimlik}"></div>
+        <div class="modal-alt-butonlar">
+          <button id="ozellik-kaydet-btn">Kaydet</button>
+          <button id="park-sil-btn" class="tehlike">Parkı sil</button>
+        </div>
+        <div id="duzenle-durum"></div>
       </div>
-    `
-    : `
-      <div class="mini-form" data-id="${kimlik}">
-        <b>Yeni nokta</b>
-        <label>Tür</label>
-        <select id="tur-${kimlik}">
-          <option value="tuvalet">Tuvalet</option>
-          <option value="cocuk_oyun_alani">Çocuk oyun alanı</option>
-          <option value="spor_sahasi">Spor sahası</option>
-          <option value="cesme">Çeşme</option>
-          <option value="otopark">Otopark</option>
-          <option value="kafeterya">Kafeterya</option>
-          <option value="bank">Bank</option>
-          <option value="piknik_alani">Piknik alanı</option>
-        </select>
-        <label>İsim</label>
-        <input type="text" id="isim-${kimlik}" placeholder="Opsiyonel" />
-        <button id="kaydet-${kimlik}">Kaydet</button>
-        <div class="durum" id="durum-${kimlik}"></div>
-      </div>
-    `;
+    </div>
 
-  layer.on('popupopen', () => {
-    const kaydetBtn = document.getElementById(`kaydet-${kimlik}`);
-    if (!kaydetBtn || kaydetBtn.dataset.baglandi) return;
-    kaydetBtn.dataset.baglandi = '1';
-
-    kaydetBtn.addEventListener('click', async () => {
-      const durum = document.getElementById(`durum-${kimlik}`);
-      const isim = document.getElementById(`isim-${kimlik}`).value.trim();
-
-      try {
-        if (tip === 'polygon') {
-          if (!isim) { durum.textContent = 'İsim gerekli.'; durum.style.color = 'crimson'; return; }
-          const mahalle = document.getElementById(`mahalle-${kimlik}`).value.trim();
-          const geojson = layer.toGeoJSON().geometry;
-          await fetch(`${API}/yesil-alanlar`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ ad: isim, mahalle, geojson })
-          });
-          // Çizilen geçici şekli kaldırıp gerçek veriyi yeniden yüklüyoruz
-          // (böylece tıklama/silme/düzenleme her zaman güncel id ile çalışır)
-          cizimKatmani.removeLayer(layer);
-          parklariYukle();
-        } else {
-          const tur = document.getElementById(`tur-${kimlik}`).value;
-          const latlng = layer.getLatLng();
-          await fetch(`${API}/tesisler`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ tur, ad: isim || null, lon: latlng.lng, lat: latlng.lat })
-          });
-          cizimKatmani.removeLayer(layer);
-          tesisleriYukle();
-        }
-
-        durum.textContent = 'Kaydedildi ✓';
-        sonEklenenleriYukle();
-      } catch (err) {
-        durum.textContent = 'Hata: ' + err.message;
-        durum.style.color = 'crimson';
-      }
-    });
-  });
-
-  layer.bindPopup(formHtml, { closeOnClick: false, autoClose: false, minWidth: 200 });
-  layer.openPopup();
-});
-</script>
-</body>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/leaflet.markercluster.js"></script>
+    <script type="module" src="js/admin-main.js"></script>
+  </body>
 </html>
